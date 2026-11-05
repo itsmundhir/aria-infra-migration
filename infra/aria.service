@@ -1,0 +1,22 @@
+# PLACEHOLDER — not yet verified against the real server.
+#
+# RUNBOOK.md Phase 0 step 1 requires capturing the real unit file
+# (`cat /etc/systemd/system/aria.service` on the old server) before this
+# is trusted. Replace this whole file with that capture, adjusted only for
+# any path changes on the new box, then delete this notice.
+
+[Unit]
+Description=ARIA backend (FastAPI/uvicorn)
+After=network.target
+
+[Service]
+Type=simple
+User=deploy
+WorkingDirectory=/home/deploy/aria-backend
+EnvironmentFile=/home/deploy/aria-backend/.env
+ExecStart=/home/deploy/aria-backend/venv/bin/uvicorn main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

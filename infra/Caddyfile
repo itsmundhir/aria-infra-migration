@@ -1,0 +1,10 @@
+# PLACEHOLDER — not yet verified against the real server.
+#
+# RUNBOOK.md Phase 0 step 1 requires capturing the actual Caddy config from
+# the old server (/etc/caddy/Caddyfile or wherever it lives) before this
+# file is trusted. Replace this whole file with that capture, adapted for
+# the new box's paths, then delete this notice.
+
+api.supanta.com {
+	reverse_proxy localhost:8000
+}
