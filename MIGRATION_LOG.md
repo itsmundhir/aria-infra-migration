@@ -10,8 +10,41 @@ rotations are logged by **key name only** — never values.
 
 - [x] Created `aria-infra-migration` (private) to track this migration
 - [x] Added `RUNBOOK.md` (full migration plan, pasted by founder)
-- [ ] New server provisioned and reachable
-- [ ] Phase 0 (prep / capture current state) started
+
+---
+
+## 2026-11-10/11 — Plan changed: old server was gone, not migrated
+
+The old Hetzner server was deleted by the host before Phase 0 started
+(non-payment, confirmed no Hetzner account access or backup exists). This
+invalidated the runbook's "migrate existing code + ChromaDB data" plan —
+there was nothing left to migrate. Also discovered the richer backend the
+runbook describes (`routes/`, `integrations/`, `<aria_meta>` parsing,
+`kb_pending` approval loop, agent dashboard, per-client KB namespacing,
+Supabase wiring) was never pushed to git — only a 171-line skeleton
+(`itsmundhir/reachbridge-web`'s `aria/main.py`) existed in version control.
+Founder confirmed no current client depends on this backend, so there was
+no live outage to manage, just a rebuild decision.
+
+Decision: full rebuild of the backend to match the runbook's spec, rather
+than a minimal relaunch of the skeleton file, since the richer feature set
+was lost either way and is worth having. Separately, Supabase itself is
+now fully paused (unrelated billing issue) and was replaced earlier this
+week by a self-hosted Postgres + PostgREST + Express API on the same
+OVHcloud server already running the main dashboard — so ARIA's backend
+was built against *that* Postgres instance from the start, not Supabase.
+
+- [x] Confirmed old server unreachable (SSH host key changed, HTTPS down) — deleted, not just suspended
+- [x] Confirmed no Hetzner account access, no backup of ChromaDB or server-only code
+- [x] Confirmed no current client depends on this backend (no live outage)
+- [x] Rebuilt backend from scratch in `itsmundhir/reachbridge-web`'s `aria/` directory: Postgres persistence (`conversations`/`messages`/`escalations`/`kb_pending`/`client_ai_config`/`knowledge_base` — all survived the earlier pg_dumpall restore intact), per-client ChromaDB namespacing (`client_{client_id}`, fixing the old cross-client KB isolation gap), `<aria_meta>` confidence/escalation parsing, Slack+HubSpot escalation integrations, `kb_pending` approval loop, agent dashboard (`agent_dashboard.html`)
+- [x] Deployed to the existing OVHcloud box (`vps-cf180e77`) rather than a new dedicated server — founder's call given recent payment issues; can move to dedicated hardware later if resource contention becomes real
+- [x] Tested end-to-end: chat response + KB retrieval + confidence scoring + escalation (keyword-triggered) + agent queue listing, all against real Postgres data
+- [x] Caddy route added, HTTPS working (`aria-test.supanta.com` test subdomain, then `api.supanta.com` itself)
+- [x] **DNS cutover done** — `api.supanta.com` now points to the OVHcloud server (`158.69.233.123`), old Hetzner IP (`167.233.85.235`) fully retired
+- [ ] Fresh Slack bot token + HubSpot token (old ones compromised per runbook, never rotated — still outstanding, escalation code no-ops gracefully without them)
+- [ ] Embeddable chat widget JS (`widget/aria-widget.js`) — also lost with the old server, not yet rebuilt
+- [ ] Anthropic API key reused from the main dashboard's `.env` (generated fresh this week, not the Hetzner-exposed one — compliant with "rotate, don't reuse compromised secrets," just noting it's shared across both services)
 
 ---
 
