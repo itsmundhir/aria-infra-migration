@@ -42,11 +42,24 @@ was built against *that* Postgres instance from the start, not Supabase.
 - [x] Tested end-to-end: chat response + KB retrieval + confidence scoring + escalation (keyword-triggered) + agent queue listing, all against real Postgres data
 - [x] Caddy route added, HTTPS working (`aria-test.supanta.com` test subdomain, then `api.supanta.com` itself)
 - [x] **DNS cutover done** — `api.supanta.com` now points to the OVHcloud server (`158.69.233.123`), old Hetzner IP (`167.233.85.235`) fully retired
-- [ ] Fresh Slack bot token + HubSpot token (old ones compromised per runbook, never rotated — still outstanding, escalation code no-ops gracefully without them)
-- [ ] Embeddable chat widget JS (`widget/aria-widget.js`) — also lost with the old server, not yet rebuilt
-- [ ] Anthropic API key reused from the main dashboard's `.env` (generated fresh this week, not the Hetzner-exposed one — compliant with "rotate, don't reuse compromised secrets," just noting it's shared across both services)
+- [x] Fresh Slack bot token + Slack channel ID set, escalation alerts confirmed arriving in `#aria-escalations`
+- [x] Fresh HubSpot private app token set, escalation ticket creation confirmed working
+- [x] Anthropic API key reused from the main dashboard's `.env` (generated fresh this week, not the Hetzner-exposed one)
+- [x] Embeddable chat widget rebuilt (`static/aria-widget.js`) — bubble + panel UI, typing indicator, send spinner, polls for human agent replies after escalation
+- [x] Agent dashboard fixed and confirmed reachable at `api.supanta.com/dashboard` (Slack escalation button linked to a URL that was never actually served — fixed)
+- [x] Fixed a startup bug: sentence-transformers was hitting Hugging Face's rate limit on every restart, delaying readiness ~60s+ and causing empty/502 responses right after a deploy — `HF_HUB_OFFLINE=1` set, now starts from local cache instantly
+
+**ARIA backend rebuild is functionally complete** — login/chat/escalation/KB retrieval/agent dashboard all verified working end-to-end on `api.supanta.com`.
 
 ---
+
+## Phases 0-6 below — superseded, see 2026-11-10/11 entry above
+
+These assumed there was old code/data to migrate. There wasn't (old
+server deleted before Phase 0 started). Left unchecked as a record of the
+original plan, not as outstanding work — the rebuild above covers what
+actually needed doing instead. Phase 6 (decommission) is moot: the old
+server is already gone.
 
 ## Phase 0 — Prep (no production risk)
 
